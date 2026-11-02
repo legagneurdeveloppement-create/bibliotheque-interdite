@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% from "_header.html" import game_header %}
+
+{% block title %}Acte III — Le Chiffre de César{% endblock %}
+
+{% block header %}
+{{ game_header("act3", time_remaining_str, time_remaining, hints_used, visible_hints, max_hints, state) }}
+{% endblock %}
+
+{% block content %}
+<section class="card ornate">
+  <h3 style="color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; font-size:0.85rem; margin-bottom:0.5rem;">🔐 Le Défi</h3>
+  <p style="font-size:0.9rem;">{{ narration.act3_start }}</p>
+</section>
+
+<!-- Message chiffré -->
+<section id="caesar" style="margin-top:1rem; scroll-margin-top:100px;">
+  <div class="card ornate {% if state.act3_solved %}glow{% endif %}">
+    <h3 style="color:var(--primary); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.75rem;">📜 Parchemin chiffré</h3>
+
+    <!-- Texte chiffré -->
+    <div class="cyrillic-message" style="margin-bottom:1rem;">
+      <p class="original" style="font-size:1.1rem; letter-spacing:0.15em;">{{ caesar.encrypted_text }}</p>
+    </div>
+
+    <!-- Indice pour le décalage -->
+    <div class="translation-box" style="margin-bottom:1rem;">
+      <div class="label">Indice</div>
+      <p style="font-size:0.85rem; font-style:italic;">{{ caesar.shift_hint }}</p>
+    </div>
+
+    {% if not state.act3_solved %}
+    <!-- Curseur de décalage -->
+    <div class="caesar-controls">
+      <div class="shift-display">
+        <span class="shift-label">Décalage :</span>
+        <span class="shift-value">{{ current_shift }}</span>
+      </div>
+
+      <div class="shift-buttons">
+        <form method="post" action="{{ url_for('act3_set_shift') }}" style="display:inline;">
+          <input type="hidden" name="shift" value="{{ current_shift - 1 }}">
+          <button type="submit" class="shift-btn" {% if current_shift <= 0 %}disabled{% endif %}>−</button>
+        </form>
+
+        <form method="post" action="{{ url_for('act3_set_shift') }}" style="display:inline;">
+          <input type="hidden" name="shift" value="{{ current_shift + 1 }}">
+          <button type="submit" class="shift-btn" {% if current_shift >= 25 %}disabled{% endif %}>+</button>
+        </form>
+      </div>
+
+      <!-- Barre de décalage (formes cliquables) -->
+      <div class="shift-bar">
+        {% for i in range(26) %}
+        <form method="post" action="{{ url_for('act3_set_shift') }}" class="shift-slot-form">
+          <input type="hidden" name="shift" value="{{ i }}">
+          <button type="submit" class="shift-slot {% if i == current_shift %}active{% endif %}">{{ i }}</button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Aperçu décrypté en temps réel -->
+    <div class="decrypted-preview">
+      <div class="label">Texte décrypté (aperçu)</div>
+      <p class="decrypted-text">{{ decrypted }}</p>
+    </div>
+
+    <!-- Bouton vérifier -->
+    <form method="post" action="{{ url_for('act3_verify') }}">
+      <button type="submit" class="btn btn-primary btn-lg" style="margin-top:1rem;">
+        ✅ Confirmer le décalage {{ current_shift }}
+      </button>
+    </form>
+
+    {% else %}
+    <!-- Message révélé -->
+    <div class="translation-box" style="border-color:var(--primary); background:rgba(212,168,87,0.1);">
+      <div class="label">Message décrypté (décalage {{ current_shift }})</div>
+      <p style="font-size:1rem; font-weight:500; color:var(--primary);">« {{ decrypted }} »</p>
+    </div>
+
+    <div class="translation-box">
+      <div class="label">Ce que le message révèle</div>
+      <p style="font-size:0.9rem;">{{ caesar.reveals }}</p>
+    </div>
+
+    <p style="font-size:0.8rem; font-style:italic; color:var(--fg-dim); margin:0.75rem 0;">{{ narration.act3_end }}</p>
+
+    <a href="{{ url_for('act', act_id='act4') }}" class="btn btn-primary btn-lg glow" style="margin-top:0.5rem;">
+      Continuer vers l'Acte IV — Le Carré de Polybe →
+    </a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GAME_STARTED = true;
+  window.GAME_TIME_REMAINING = {{ time_remaining }};
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Victoire — Le Protocole de Vérité{% endblock %}
+
+{% block content %}
+<div class="end-screen">
+  <div class="icon-large">🏆</div>
+
+  <h1>Le Protocole de Vérité</h1>
+  <p style="font-size:1.1rem; color:var(--primary); font-style:italic; margin-bottom:1rem;">est entre vos mains</p>
+
+  <div class="card ornate" style="text-align:left;">
+    <p style="line-height:1.6;">{{ narration }}</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">🕐 Temps</div>
+      <div class="value">{{ elapsed_str }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">💡 Indices</div>
+      <div class="value">{{ hints_used }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">❌ Erreurs</div>
+      <div class="value">{{ mistakes }}</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="label">🏆 Score</div>
+      <div class="value">{{ score }}</div>
+    </div>
+  </div>
+
+  <div class="rank-card">
+    <div class="label">Rang obtenu</div>
+    <div class="rank">{{ rank }}</div>
+  </div>
+
+  <!-- Soutien Tipeee -->
+  <div class="tipeee-banner">
+    <div class="tipeee-text">
+      <div class="tipeee-title">💕 Vous avez aimé l'aventure ?</div>
+      <div class="tipeee-subtitle">Soutenez le créateur et aidez à développer de nouvelles énigmes !</div>
+    </div>
+    <!-- ═══ REMPLACEZ L'URL CI-DESSOUS PAR VOTRE VRAI LIEN TIPEEE ═══ -->
+    <a href="https://tipeee.com/legagneur-developpement" target="_blank" rel="noopener" class="btn-tipeee">
+      ☕ Soutenir sur Tipeee
+    </a>
+  </div>
+
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap; justify-content:center; margin-top:0.5rem;">
+    <a href="{{ url_for('reset') }}" class="btn btn-primary btn-lg glow" style="flex:1; min-width:200px;">
+      🔄 Recommencer l'aventure
+    </a>
+    <a href="{{ url_for('reset') }}" class="btn btn-tertiary btn-lg" style="flex:1; min-width:200px;">
+      🚪 Quitter
+    </a>
+  </div>
+</div>
+{% endblock %}

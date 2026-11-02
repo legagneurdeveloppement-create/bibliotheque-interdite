@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% from "_header.html" import game_header %}
+
+{% block title %}Acte IV — Le Carré de Polybe{% endblock %}
+
+{% block header %}
+{{ game_header("act4", time_remaining_str, time_remaining, hints_used, visible_hints, max_hints, state) }}
+{% endblock %}
+
+{% block content %}
+<section class="card ornate">
+  <h3 style="color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; font-size:0.85rem; margin-bottom:0.5rem;">🔲 Le Défi</h3>
+  <p style="font-size:0.9rem;">{{ narration.act4_start }}</p>
+</section>
+
+<!-- Carré de Polybe -->
+<section id="polybius" style="margin-top:1rem; scroll-margin-top:100px;">
+  <div class="card ornate {% if state.act4_solved %}glow{% endif %}">
+    <h3 style="color:var(--primary); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.75rem;">🔠 La Grille de Polybe</h3>
+
+    <!-- Indice -->
+    <div class="translation-box" style="margin-bottom:1rem;">
+      <div class="label">Indice</div>
+      <p style="font-size:0.85rem; font-style:italic;">{{ polybius.hint }}</p>
+    </div>
+
+    <!-- Grille 5x5 -->
+    <div class="polybius-grid-wrapper">
+      <table class="polybius-grid">
+        <thead>
+          <tr>
+            <th></th>
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+            <th>4</th>
+            <th>5</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in polybius.grid %}
+          <tr>
+            <th>{{ loop.index }}</th>
+            {% for cell in row %}
+            <td>
+              <button type="button"
+                      class="grid-cell"
+                      onclick="addLetter('{{ cell[0] }}')"
+                      aria-label="Lettre {{ cell }}">{{ cell }}</button>
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Séquence encodée -->
+    <div class="encoded-sequence">
+      <div class="label">Séquence à décoder</div>
+      <p class="encoded-pairs">{{ polybius.encoded_text }}</p>
+    </div>
+
+    {% if not state.act4_solved %}
+    <!-- Saisie du mot + Vérification en un seul formulaire -->
+    <form method="post" action="{{ url_for('act4_verify') }}" id="word-form">
+      <div class="word-input-wrapper">
+        <label for="polybius_word" style="font-size:0.8rem; color:var(--fg-dim); display:block; margin-bottom:0.4rem;">Mot décodé — cliquez sur les lettres de la grille</label>
+        <div style="display:flex; gap:0.5rem; align-items:stretch;">
+          <input type="text" id="polybius_word" name="polybius_word"
+                 value="{{ user_word }}"
+                 maxlength="10"
+                 style="flex:1; padding:0.8rem; font-size:1.5rem; text-align:center;
+                        font-family:'Courier New', monospace; font-weight:bold;
+                        text-transform:uppercase; letter-spacing:0.2em;
+                        background:rgba(30,26,18,0.6); border:2px solid var(--border-strong);
+                        border-radius:var(--radius); color:var(--primary);"
+                 oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')"
+                 placeholder="?"
+                 autocomplete="off">
+          <button type="button"
+                  onclick="clearWord()"
+                  class="btn btn-tertiary"
+                  style="min-height:48px; padding:0 1rem; border:2px solid var(--border); border-radius:var(--radius); background:rgba(196,74,58,0.1); color:var(--destructive); font-size:0.85rem; cursor:pointer; white-space:nowrap;"
+                  aria-label="Effacer le mot">
+            ✕ Effacer
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg" style="margin-top:0.75rem; width:100%;">
+        ✅ Vérifier
+      </button>
+    </form>
+
+    <script>
+      // Ajoute une lettre au champ mot (au clic sur la grille)
+      function addLetter(letter) {
+        var input = document.getElementById('polybius_word');
+        if (input.value.length < 10) {
+          input.value += letter;
+          // Déclenche l'événement input pour la cohérence
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        input.focus();
+      }
+      // Efface le champ mot
+      function clearWord() {
+        var input = document.getElementById('polybius_word');
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.focus();
+      }
+    </script>
+
+    {% else %}
+    <!-- Mot révélé -->
+    <div class="translation-box" style="border-color:var(--primary); background:rgba(212,168,87,0.1); text-align:center;">
+      <div class="label">Mot décodé</div>
+      <p style="font-size:2rem; font-weight:bold; color:var(--primary); letter-spacing:0.3em; text-shadow:0 0 12px var(--primary-glow);">
+        ☀️ {{ polybius.decoded_word }} ☀️
+      </p>
+    </div>
+
+    <div class="translation-box">
+      <div class="label">Ce que le mot révèle</div>
+      <p style="font-size:0.9rem;">{{ polybius.reveals }}</p>
+    </div>
+
+    <p style="font-size:0.8rem; font-style:italic; color:var(--fg-dim); margin:0.75rem 0;">{{ narration.act4_end }}</p>
+
+    <a href="{{ url_for('act', act_id='act5') }}" class="btn btn-primary btn-lg glow" style="margin-top:0.5rem;">
+      Continuer vers l'Acte V — Le Protocole de Vérité →
+    </a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GAME_STARTED = true;
+  window.GAME_TIME_REMAINING = {{ time_remaining }};
+
+  // Auto-focus et auto-submit sur Entrée
+  document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('polybius_word');
+    if (input) {
+      input.focus();
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('word-form').submit();
+        }
+      });
+    }
+  });
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

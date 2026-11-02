@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% from "_header.html" import game_header %}
+
+{% block title %}Acte I — Les Codes des Lumières{% endblock %}
+
+{% block header %}
+{{ game_header("act1", time_remaining_str, time_remaining, hints_used, visible_hints, max_hints, state) }}
+{% endblock %}
+
+{% block content %}
+<section class="card ornate">
+  <h3 style="color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; font-size:0.85rem; margin-bottom:0.5rem;">🗺️ Le Défi</h3>
+  <p style="font-size:0.9rem;">{{ narration.act1_start }}</p>
+</section>
+
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.75rem;">
+  <p style="font-size:0.85rem; color:var(--fg-dim);">
+    <strong style="color:var(--fg);">Alignez les cartes</strong> du plus ancien au plus récent.
+  </p>
+  {% if not state.act1_solved %}
+    <a href="{{ url_for('act1_shuffle') }}" class="btn btn-ghost btn-sm">🔄 Mélanger</a>
+  {% endif %}
+</div>
+
+<div class="map-list">
+  {% for map in maps %}
+  <div class="map-card {% if state.act1_solved %}correct{% endif %}">
+    <div class="position">{{ loop.index }}</div>
+    <div class="glyph">{{ map.glyph }}</div>
+    <div class="info">
+      <h3>{{ map.title }}</h3>
+      <div class="event">{{ map.event }}</div>
+    </div>
+    {% if not state.act1_solved %}
+    <div class="controls">
+      <form method="post" action="{{ url_for('act1_move') }}">
+        <input type="hidden" name="map_id" value="{{ map.id }}">
+        <input type="hidden" name="direction" value="up">
+        <button type="submit" class="move-btn" {% if loop.first %}disabled{% endif %}>▲</button>
+      </form>
+      <form method="post" action="{{ url_for('act1_move') }}">
+        <input type="hidden" name="map_id" value="{{ map.id }}">
+        <input type="hidden" name="direction" value="down">
+        <button type="submit" class="move-btn" {% if loop.last %}disabled{% endif %}>▼</button>
+      </form>
+    </div>
+    {% else %}
+      <span style="color:var(--primary);">✓</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+{% if not state.act1_solved %}
+  <form method="post" action="{{ url_for('act1_verify') }}">
+    <button type="submit" class="btn btn-primary btn-lg" style="margin-top:1rem;">
+      👁️ Vérifier l'alignement
+    </button>
+  </form>
+{% else %}
+  <div class="card glow" style="margin-top:1rem;">
+    <h3 style="color:var(--primary); margin-bottom:0.5rem;">📜 Le Message Révélé</h3>
+    <p style="font-size:0.85rem; font-style:italic; color:var(--fg-dim); margin-bottom:0.75rem;">{{ narration.act1_end }}</p>
+
+    <div class="cyrillic-message">
+      <p class="original">{{ cyrillic.original }}</p>
+    </div>
+
+    <div class="translation-box">
+      <div class="label">Translittération</div>
+      <p style="font-family:monospace; font-style:italic; font-size:0.85rem;">{{ cyrillic.transliteration }}</p>
+    </div>
+
+    <div class="translation-box">
+      <div class="label">Traduction</div>
+      <p style="font-weight:500;">« {{ cyrillic.translation }} »</p>
+    </div>
+
+    <a href="{{ url_for('act', act_id='act2') }}" class="btn btn-primary btn-lg" style="margin-top:0.75rem;">
+      Continuer vers l'Acte II →
+    </a>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GAME_STARTED = true;
+  window.GAME_TIME_REMAINING = {{ time_remaining }};
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

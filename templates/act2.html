@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% from "_header.html" import game_header %}
+
+{% block title %}Acte II — Les Langues Oubliées{% endblock %}
+
+{% block header %}
+{{ game_header("act2", time_remaining_str, time_remaining, hints_used, visible_hints, max_hints, state) }}
+{% endblock %}
+
+{% block content %}
+<section class="card ornate">
+  <h3 style="color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; font-size:0.85rem; margin-bottom:0.5rem;">🌐 Le Défi</h3>
+  <p style="font-size:0.9rem;">{{ narration.act2_start }}</p>
+</section>
+
+<!-- Fragments -->
+<section style="margin-top:1rem;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+    <h3 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em;">Fragments à traduire</h3>
+    <span class="badge">{{ state.act2_translated|length }}/{{ fragments|length }}</span>
+  </div>
+
+  {% for frag in fragments %}
+  {% set is_translated = frag.id in state.act2_translated %}
+  <div class="fragment-card {% if is_translated %}glow{% endif %}">
+    <div class="fragment-header">
+      <span class="lang">{{ frag.flag }} {{ frag.language }}</span>
+      {% if is_translated %}
+        <span class="badge primary">✓ Traduit</span>
+      {% else %}
+        <a href="{{ url_for('act2_translate', frag_id=frag.id) }}" class="btn btn-ghost btn-sm" style="color:var(--primary);">👁️ Traduire</a>
+      {% endif %}
+    </div>
+
+    <div class="fragment-original">{{ frag.original_text }}</div>
+
+    {% if is_translated %}
+    <div class="fragment-translation">
+      <div class="translation-box">
+        <div class="label">Translittération</div>
+        <p style="font-family:monospace; font-style:italic; font-size:0.8rem;">{{ frag.transliteration }}</p>
+      </div>
+      <div class="translation-box">
+        <div class="label">Traduction littérale</div>
+        <p style="font-weight:500;">« {{ frag.translation }} »</p>
+      </div>
+      <div class="digit-box">
+        <span style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--primary);">Chiffre</span>
+        <span class="digit">{{ frag.digit }}</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+
+<!-- Rébus -->
+<section style="margin-top:1.5rem;">
+  <div class="card">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+      <h3 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em;">Le Rébus des Fondateurs</h3>
+      {% if state.act2_rebus_revealed %}
+        <span class="badge primary">✓ Résolu</span>
+      {% else %}
+        <a href="{{ url_for('act2_rebus') }}" class="btn btn-ghost btn-sm" style="color:var(--primary);">💡 Déchiffrer</a>
+      {% endif %}
+    </div>
+
+    <p style="font-size:0.8rem; color:var(--fg-dim); margin-bottom:0.75rem;">Les initiales des sept fondateurs de la Bibliothèque, gravées sur le couvercle de la boîte.</p>
+
+    <div class="rebus-letters">
+      {% for f in founders %}
+      <div class="rebus-letter {% if state.act2_rebus_revealed and loop.index == 4 %}highlight{% endif %}">
+        {{ f.letter }}
+        {% if state.act2_rebus_revealed and loop.index == 4 %}
+          <span class="badge">4</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if state.act2_rebus_revealed %}
+    <div class="translation-box">
+      <p style="font-size:0.85rem;">{{ rebus_explanation }}</p>
+      <div class="digit-box">
+        <span style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--primary);">4ᵉ chiffre</span>
+        <span class="digit">2</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Cadenas -->
+<section style="margin-top:1.5rem;">
+  <div class="card {% if state.act2_solved %}glow{% endif %}">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+      <h3 style="color:var(--primary); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em;">
+        {% if state.act2_solved %}🔓 Boîte ouverte{% else %}🔒 Cadenas à combinaison{% endif %}
+      </h3>
+      <span class="badge">{{ state.act2_combination|length }}/4</span>
+    </div>
+
+    {% if not state.act2_solved %}
+    <form method="post" action="{{ url_for('act2_verify') }}" id="combination-form">
+      <div class="combination-input">
+        {% for i in range(4) %}
+        <input type="text" name="combo{{ i }}" data-combo maxlength="1"
+               value="{{ state.act2_combination[i] if i < state.act2_combination|length else '' }}"
+               inputmode="numeric" pattern="[0-9]">
+        {% endfor %}
+        <input type="hidden" name="combination" id="combination-hidden">
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg">🔒 Tenter la combinaison</button>
+    </form>
+    {% else %}
+      <a href="{{ url_for('act', act_id='act3') }}" class="btn btn-primary btn-lg glow" style="margin-top:0.75rem;">
+        Passer à l'Acte III — Le Protocole de Vérité →
+      </a>
+    {% endif %}
+  </div>
+</section>
+
+{% if state.act2_solved %}
+  <div class="card glow" style="margin-top:1rem;">
+    <h3 style="color:var(--primary);">📦 Le Contenu de la Boîte</h3>
+    <p style="font-size:0.85rem; font-style:italic; color:var(--fg-dim); margin:0.5rem 0;">{{ narration.act2_end }}</p>
+    <div class="translation-box">
+      <div class="label">Ordre de la vérité (rappel du message cyrillique)</div>
+      <p style="font-style:italic; color:var(--primary);">« La vérité — dans l'ordre de naissance. »</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GAME_STARTED = true;
+  window.GAME_TIME_REMAINING = {{ time_remaining }};
+
+  // Concatène les 4 inputs dans le champ hidden avant soumission
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('combination-form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        var inputs = form.querySelectorAll('input[data-combo]');
+        var code = '';
+        inputs.forEach(function(inp) { code += inp.value; });
+        document.getElementById('combination-hidden').value = code;
+      });
+    }
+  });
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

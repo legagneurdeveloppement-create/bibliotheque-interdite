@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Défaite — Le temps a coulé{% endblock %}
+
+{% block content %}
+<div class="end-screen defeat">
+  <div class="icon-large">📖</div>
+
+  <h1>Le temps a coulé</h1>
+  <p style="font-size:1.1rem; color:var(--fg-dim); font-style:italic; margin-bottom:1rem;">comme le sable</p>
+
+  <div class="card ornate" style="text-align:left;">
+    <p style="line-height:1.6;">{{ narration }}</p>
+    <div style="margin-top:1rem; display:flex; justify-content:center; gap:1rem; font-size:0.8rem; color:var(--fg-dim);">
+      <span>{{ hints_used }} indice(s) utilisé(s)</span>
+      <span>·</span>
+      <span>{{ mistakes }} erreur(s)</span>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap; justify-content:center; margin-top:1.5rem;">
+    <a href="{{ url_for('reset') }}" class="btn btn-primary btn-lg" style="flex:1; min-width:200px;">
+      🔄 Retenter l'aventure
+    </a>
+    <a href="{{ url_for('reset') }}" class="btn btn-tertiary btn-lg" style="flex:1; min-width:200px;">
+      🚪 Quitter
+    </a>
+  </div>
+</div>
+{% endblock %}

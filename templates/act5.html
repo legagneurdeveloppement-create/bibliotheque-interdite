@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% from "_header.html" import game_header %}
+
+{% block title %}Acte V — Le Protocole de Vérité{% endblock %}
+
+{% block header %}
+{{ game_header("act5", time_remaining_str, time_remaining, hints_used, visible_hints, max_hints, state) }}
+{% endblock %}
+
+{% block content %}
+<section class="card ornate">
+  <h3 style="color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; font-size:0.85rem; margin-bottom:0.5rem;">🔍 Le Défi Final</h3>
+  <p style="font-size:0.9rem;">{{ narration.act5_start }}</p>
+</section>
+
+<!-- Étape 1 : Fouille -->
+<section style="margin-top:1rem;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+    <h3 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em;">1 · Fouillez la salle</h3>
+    <span class="badge">{{ state.act5_found_items|length }}/{{ items|length }} objets</span>
+  </div>
+
+  <div class="card">
+    <p style="font-size:0.8rem; color:var(--fg-dim); margin-bottom:0.75rem;">Touchez les zones lumineuses pour fouiller. Chaque objet est lié à un personnage.</p>
+
+    <div class="room-map">
+      {% for spot in spots %}
+      {% set found = spot.item in state.act5_found_items %}
+      <a href="{{ url_for('act5_search', spot_id=spot.id) }}"
+         class="hotspot {% if found %}found{% endif %}"
+         style="left:{{ spot.x }}%; top:{{ spot.y }}%;">
+        {% if found %}✓{% else %}🔍{% endif %}
+        <span class="hotspot-label">{{ spot.label }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if state.act5_found_items %}
+    <div style="margin-top:1rem;">
+      <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--fg-dim); margin-bottom:0.4rem;">Objets récupérés</div>
+      <div class="items-to-place">
+        {% for item in items %}
+          {% if item.id in state.act5_found_items %}
+          <span class="item-chip">{{ item.icon }} {{ item.object }}</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Étape 2 : Piédestal -->
+{% if state.act5_found_items|length == items|length %}
+<section style="margin-top:1.5rem;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+    <h3 style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.1em;">2 · Disposez sur le piédestal</h3>
+    <span class="badge">{{ state.act5_arrangement|length }}/7 placés</span>
+  </div>
+
+  <div class="card">
+    <p style="font-size:0.8rem; color:var(--fg-dim); margin-bottom:0.75rem;">
+      Rappel du message cyrillique : <em>« la vérité — dans l'ordre de naissance. »</em> Du plus jeune au plus âgé.
+    </p>
+
+    <div class="pedestal-slots">
+      {% for i in range(7) %}
+      {% if i < state.act5_arrangement|length %}
+        {% set item = arrangement_items[i] %}
+        <div class="pedestal-slot filled">
+          <div class="slot-num">{{ i + 1 }}</div>
+          <span class="item-icon">{{ item.icon }}</span>
+          <div class="item-info">
+            <div class="item-name">{{ item.object }}</div>
+            <div class="item-person">{{ item.name }} · {{ item.role }}</div>
+            <div class="item-year">Né(e) en {{ item.birth_year }}</div>
+          </div>
+          <div class="slot-actions">
+            <form method="post" action="{{ url_for('act5_move') }}">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <input type="hidden" name="direction" value="up">
+              <button type="submit" class="move-btn-large up" {% if i == 0 %}disabled{% endif %} aria-label="Monter">
+                <span>▲</span>
+                <small>Monter</small>
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('act5_move') }}">
+              <input type="hidden" name="item_id" value="{{ item.id }}">
+              <input type="hidden" name="direction" value="down">
+              <button type="submit" class="move-btn-large down" {% if i == state.act5_arrangement|length - 1 %}disabled{% endif %} aria-label="Descendre">
+                <span>▼</span>
+                <small>Descendre</small>
+              </button>
+            </form>
+            <a href="{{ url_for('act5_remove', item_id=item.id) }}" class="move-btn-large remove" aria-label="Retirer">
+              <span>✕</span>
+              <small>Retirer</small>
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <div class="pedestal-slot empty">
+          <div class="slot-num">{{ i + 1 }}</div>
+          <span class="empty-text">Emplacement vide — touchez un objet ci-dessous</span>
+        </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if state.act5_arrangement|length > 0 %}
+    <div class="quick-actions">
+      <a href="{{ url_for('act5_clear_all') }}" class="btn btn-ghost btn-sm">🗑️ Tout retirer</a>
+    </div>
+    {% endif %}
+
+    {% if remaining_items %}
+    <div style="margin-top:0.75rem;">
+      <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--fg-dim); margin-bottom:0.4rem;">Objets à placer</div>
+      <div class="items-to-place">
+        {% for item in remaining_items %}
+        <a href="{{ url_for('act5_place', item_id=item.id) }}" class="item-chip">
+          {{ item.icon }} {{ item.object }} →
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if state.act5_arrangement|length == 7 %}
+    <form method="post" action="{{ url_for('act5_verify') }}" style="margin-top:1rem;">
+      <button type="submit" class="btn btn-primary btn-lg glow">🏆 Activer le piédestal</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Annales -->
+<section style="margin-top:1rem;">
+  <div class="card">
+    <h4 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">📚 Annales des penseurs</h4>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.5rem;">
+      {% for item in items %}
+      <div style="padding:0.5rem; border:1px solid var(--border); border-radius:var(--radius); background:rgba(30,26,18,0.4);">
+        <div style="font-weight:600; font-size:0.85rem;">{{ item.name }}</div>
+        <div style="font-size:0.7rem; color:var(--fg-dim);">{{ item.role }}</div>
+        <div style="font-size:0.75rem; color:var(--primary); margin-top:0.2rem;">Né(e) en {{ item.birth_year }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Modal de fouille -->
+{% if current_spot_item %}
+<div class="modal-overlay" onclick="window.location.href='{{ url_for('act5_close_search') }}'">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>🔍 Fouille en cours…</h2>
+    <p style="color:var(--fg-dim); font-size:0.85rem; font-style:italic;">{{ current_spot.label }}</p>
+
+    <div class="item-display">
+      <div class="icon">{{ current_spot_item.icon }}</div>
+      <div class="name">{{ current_spot_item.object }}</div>
+      <div class="clue">« {{ current_spot_item.clue }} »</div>
+    </div>
+
+    <form method="post" action="{{ url_for('act5_take') }}">
+      <button type="submit" class="btn btn-primary btn-lg">✨ Récupérer cet objet</button>
+    </form>
+    <a href="{{ url_for('act5_close_search') }}" class="btn btn-ghost" style="margin-top:0.5rem; width:100%;">Fermer</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GAME_STARTED = true;
+  window.GAME_TIME_REMAINING = {{ time_remaining }};
+</script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% endblock %}

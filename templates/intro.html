@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="intro">
+  <div style="margin-bottom:1rem;">
+    <span style="display:inline-flex; align-items:center; gap:0.3rem; padding:0.3rem 1rem; border:1px solid var(--border-strong); border-radius:999px; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.2em; color:var(--primary);">
+      🔥 Jeu d'évasion immersif
+    </span>
+  </div>
+
+  <div class="icon-large">📖</div>
+
+  <h1>Le Secret<br>de la Bibliothèque<br><em style="color:var(--fg-dim);">Interdite</em></h1>
+
+  <div style="margin:1rem auto; display:flex; align-items:center; gap:0.75rem; max-width:300px;">
+    <span style="flex:1; height:1px; background:linear-gradient(to right, transparent, var(--primary));"></span>
+    <span style="font-size:1.5rem; color:var(--primary);">🗝️</span>
+    <span style="flex:1; height:1px; background:linear-gradient(to left, transparent, var(--primary));"></span>
+  </div>
+
+  <p class="subtitle">Mystère · Histoire · Cryptographie</p>
+
+  <div class="card ornate" style="text-align:left;">
+    <h3 style="color:var(--primary); text-transform:uppercase; letter-spacing:0.1em; font-size:0.85rem; margin-bottom:0.75rem;">📜 Le Pitch</h3>
+    {% for paragraph in narration %}
+      <p style="margin-bottom:0.75rem; line-height:1.6;">{{ paragraph }}</p>
+    {% endfor %}
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="icon">👥</div>
+      <div class="label">Joueurs</div>
+      <div class="value">4–6</div>
+    </div>
+    <div class="info-card">
+      <div class="icon">🕐</div>
+      <div class="label">Durée</div>
+      <div class="value">60–75 min</div>
+    </div>
+    <div class="info-card">
+      <div class="icon">🗝️</div>
+      <div class="label">Clés</div>
+      <div class="value">7 à trouver</div>
+    </div>
+  </div>
+
+  <a href="{{ url_for('start_game') }}" class="btn btn-primary btn-lg glow" style="margin-top:0.5rem;">
+    🔥 Entrer dans la Bibliothèque
+  </a>
+
+  <!-- Lien Tipeee discret -->
+  <div style="margin-top:1.5rem;">
+    <!-- ═══ REMPLACEZ L'URL CI-DESSOUS PAR VOTRE VRAI LIEN TIPEEE ═══ -->
+    <a href="https://tipeee.com/legagneur-developpement" target="_blank" rel="noopener"
+       style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem;
+              border:1px solid var(--border); border-radius:999px; text-decoration:none;
+              color:var(--fg-dim); font-size:0.8rem; transition:all 0.2s;"
+       onmouseover="this.style.borderColor='var(--tipeee)'; this.style.color='var(--tipeee)';"
+       onmouseout="this.style.borderColor='var(--border)'; this.style.color='var(--fg-dim)';">
+      ☕ Soutenir le créateur sur Tipeee
+    </a>
+  </div>
+</div>
+{% endblock %}

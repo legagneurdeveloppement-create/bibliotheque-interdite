@@ -1,0 +1,57 @@
+{% macro game_header(act_id, time_remaining_str, time_remaining, hints_used, visible_hints, max_hints, state) %}
+<header class="game-header">
+  <div class="container">
+    <div class="header-row">
+      <a href="{{ url_for('reset') }}" class="btn btn-ghost btn-icon" title="Recommencer">🏠</a>
+
+      <div id="timer" class="timer
+        {% if time_remaining <= 300 %}critical
+        {% elif time_remaining <= 600 %}warning{% endif %}">
+        🕐 <span id="timer-value">{{ time_remaining_str }}</span>
+      </div>
+
+      <div style="display:flex; gap:0.3rem;">
+        <a href="{{ url_for('reveal_hint', act_id=act_id) }}"
+           class="btn btn-ghost btn-sm"
+           title="Indices"
+           style="border:1px solid var(--border-strong); color:var(--primary);">
+          💡 {{ hints_used }}/{{ max_hints }}
+        </a>
+      </div>
+    </div>
+
+    <div class="progression">
+      {% set acts = [
+        {'id': 'act1', 'num': 'I', 'label': 'Lumières'},
+        {'id': 'act2', 'num': 'II', 'label': 'Langues'},
+        {'id': 'act3', 'num': 'III', 'label': 'César'},
+        {'id': 'act4', 'num': 'IV', 'label': 'Polybe'},
+        {'id': 'act5', 'num': 'V', 'label': 'Vérité'}
+      ] %}
+      {% for a in acts %}
+        <div class="act-badge">
+          <div class="circle
+            {% if a.id == act_id %}active{% endif %}
+            {% if (a.id == 'act1' and state.act1_solved) or (a.id == 'act2' and state.act2_solved) or (a.id == 'act3' and state.act3_solved) or (a.id == 'act4' and state.act4_solved) or (a.id == 'act5' and state.act5_solved) %}solved{% endif %}">
+            {% if (a.id == 'act1' and state.act1_solved) or (a.id == 'act2' and state.act2_solved) or (a.id == 'act3' and state.act3_solved) or (a.id == 'act4' and state.act4_solved) or (a.id == 'act5' and state.act5_solved) %}✓{% else %}{{ a.num }}{% endif %}
+          </div>
+          <span class="label">{{ a.label }}</span>
+        </div>
+        {% if not loop.last %}
+          <div class="connector
+            {% if (a.id == 'act1' and state.act1_solved) or (a.id == 'act2' and state.act2_solved) or (a.id == 'act3' and state.act3_solved) or (a.id == 'act4' and state.act4_solved) %}done{% endif %}">
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if visible_hints %}
+      <div style="margin-top:0.5rem; padding:0.5rem 0.75rem; border:1px solid var(--border-strong); border-radius:var(--radius); background:rgba(212,168,87,0.05); font-size:0.8rem;">
+        {% for hint in visible_hints %}
+          <p style="margin-bottom:0.3rem;"><strong style="color:var(--primary);">Indice {{ loop.index }}:</strong> {{ hint.text }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</header>
+{% endmacro %}
